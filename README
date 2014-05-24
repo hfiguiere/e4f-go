@@ -3,5 +3,14 @@ Exif4Film Android app.
 
 https://play.google.com/store/apps/details?id=dk.codeunited.kulturarv
 
+This is not associated in anyway with CodeUnited, the author of the Android
+app.
+
+This has been written without documentation of the format.
+
+TODO:
+
+Make this a package.
+Make a command line tool to output XMP
 
 Hubert Figuiere
