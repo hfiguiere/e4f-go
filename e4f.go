@@ -9,10 +9,9 @@ import (
 )
 
 type E4fObject interface {
-	Id()   int
+	Id() int
 	Type() string
 }
-
 
 type E4fDb struct {
 	Version      string
@@ -25,14 +24,14 @@ type E4fDb struct {
 	Lenses       []*Lens
 	Artists      []*Artist
 
-	GpsMap   map[int]*GpsLocation
-	LensMap  map[int]*Lens
-	ObjectsMap   map[int] E4fObject
+	GpsMap     map[int]*GpsLocation
+	LensMap    map[int]*Lens
+	ObjectsMap map[int]E4fObject
 }
 
 // Build the id -> data maps for the various elements
 func (db *E4fDb) buildMaps() {
-	db.ObjectsMap = make(map[int] E4fObject)
+	db.ObjectsMap = make(map[int]E4fObject)
 
 	for _, cam := range db.Cameras {
 		o, present := db.ObjectsMap[cam.id]
@@ -143,9 +142,10 @@ func (o *Make) Type() string {
 }
 
 type GpsLocation struct {
-	id int
+	id             int
 	Long, Lat, Alt float64
 }
+
 func (o *GpsLocation) Id() int {
 	return o.id
 }
@@ -158,11 +158,12 @@ type ExposedRoll struct {
 	FilmType     string
 	CameraId     int
 	Iso          int
-        FrameCount   int
+	FrameCount   int
 	TimeUnloaded string
 	TimeLoaded   string
 	FilmId       int
 }
+
 func (o *ExposedRoll) Id() int {
 	return o.id
 }
@@ -186,6 +187,7 @@ type Exposure struct {
 	Aperture     string
 	MeteringMode string
 }
+
 func (o *Exposure) Id() int {
 	return o.id
 }
@@ -194,13 +196,14 @@ func (o *Exposure) Type() string {
 }
 
 type Film struct {
-	id             int
-	Process        string
-	Title          string
-	ColorType      string
-	Iso            int
-	MakeId         int
+	id        int
+	Process   string
+	Title     string
+	ColorType string
+	Iso       int
+	MakeId    int
 }
+
 func (o *Film) Id() int {
 	return o.id
 }
@@ -218,6 +221,7 @@ type Lens struct {
 	FocalLengthMin int
 	FocalLengthMax int
 }
+
 func (o *Lens) Id() int {
 	return o.id
 }
@@ -257,7 +261,7 @@ func toBool(dst *bool) exml.TextCallback {
 	}
 }
 
-func parse(file string) (*E4fDb) {
+func parse(file string) *E4fDb {
 
 	reader, _ := os.Open(file)
 	defer reader.Close()
@@ -267,7 +271,7 @@ func parse(file string) (*E4fDb) {
 
 	decoder.On("Exif4Film", func(attrs exml.Attrs) {
 
-		e4fDb.Version, _= attrs.Get("version")
+		e4fDb.Version, _ = attrs.Get("version")
 
 		decoder.On("Camera/dk.codeunited.exif4film.model.Camera",
 			func(attrs exml.Attrs) {
@@ -392,9 +396,9 @@ func parse(file string) (*E4fDb) {
 				decoder.OnTextOf("lens_aperture_max",
 					exml.Assign(&lens.ApertureMax))
 				decoder.OnTextOf("lens_focal_length_min",
-					toInt(&lens.FocalLengthMin));
+					toInt(&lens.FocalLengthMin))
 				decoder.OnTextOf("lens_focal_length_max",
-					toInt(&lens.FocalLengthMax));
+					toInt(&lens.FocalLengthMax))
 			})
 		decoder.On("Artist/dk.codeunited.exif4film.model.Artist",
 			func(attrs exml.Attrs) {
@@ -409,9 +413,8 @@ func parse(file string) (*E4fDb) {
 	return e4fDb
 }
 
-
 func main() {
-	e4fDb := parse("samples/export-Roll-20130630_203650.xml");
+	e4fDb := parse("samples/export-Roll-20130630_203650.xml")
 
 	e4fDb.buildMaps()
 
