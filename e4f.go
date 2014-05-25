@@ -13,11 +13,6 @@ import (
 	"gopkg.in/lucsky/go-exml.v3"
 )
 
-type E4fObject interface {
-	Id() int
-	Type() string
-}
-
 type E4fDb struct {
 	Version      string
 	Cameras      []*Camera
@@ -29,78 +24,48 @@ type E4fDb struct {
 	Lenses       []*Lens
 	Artists      []*Artist
 
+	RollMap    map[int]*ExposedRoll
+	MakeMap    map[int]*Make
+	CameraMap  map[int]*Camera
 	GpsMap     map[int]*GpsLocation
 	LensMap    map[int]*Lens
-	ObjectsMap map[int]E4fObject
+	FilmMap    map[int]*Film
 }
 
 // Build the id -> data maps for the various elements
 func (db *E4fDb) buildMaps() {
-	db.ObjectsMap = make(map[int]E4fObject)
-
+	db.CameraMap = make(map[int]*Camera)
 	for _, cam := range db.Cameras {
-		o, present := db.ObjectsMap[cam.id]
-		if present {
-			fmt.Printf("Object %d present already of type %s\n",
-				cam.id, o.Type())
-		}
-		db.ObjectsMap[cam.id] = cam
+		db.CameraMap[cam.Id] = cam
 	}
 
+	db.MakeMap = make(map[int]*Make)
 	for _, mk := range db.Makes {
-		o, present := db.ObjectsMap[mk.id]
-		if present {
-			fmt.Printf("Object %d present already of type %s\n",
-				mk.id, o.Type())
-		}
-		db.ObjectsMap[mk.id] = mk
+		db.MakeMap[mk.Id] = mk
 	}
 
 	db.GpsMap = make(map[int]*GpsLocation)
 	for _, gps := range db.GpsLocations {
-		db.GpsMap[gps.id] = gps
+		db.GpsMap[gps.Id] = gps
 	}
 
+	db.RollMap = make(map[int]*ExposedRoll)
 	for _, roll := range db.ExposedRolls {
-		o, present := db.ObjectsMap[roll.id]
-		if present {
-			fmt.Printf("Object %d present already of type %s\n",
-				roll.id, o.Type())
-		}
-		db.ObjectsMap[roll.id] = roll
+		db.RollMap[roll.Id] = roll
 	}
 
-	for _, exp := range db.Exposures {
-		o, present := db.ObjectsMap[exp.id]
-		if present {
-			fmt.Printf("Object %d present already of type %s\n",
-				exp.id, o.Type())
-		}
-		db.ObjectsMap[exp.id] = exp
-	}
-
+	db.FilmMap = make(map[int]*Film)
 	for _, film := range db.Films {
-		o, present := db.ObjectsMap[film.id]
-		if present {
-			fmt.Printf("Object %d present already of type %s\n",
-				film.id, o.Type())
-		}
-		db.ObjectsMap[film.id] = film
+		db.FilmMap[film.Id] = film
 	}
 
 	db.LensMap = make(map[int]*Lens)
 	for _, lens := range db.Lenses {
-		db.LensMap[lens.id] = lens
+		db.LensMap[lens.Id] = lens
 	}
 }
 
 func (db *E4fDb) exposuresForRoll(id int) (exposures []*Exposure) {
-	obj := db.ObjectsMap[id]
-	if obj.Type() != "ExposedRoll" {
-		fmt.Printf("Found type %s\n", obj.Type())
-		return nil
-	}
-
 	for _, exp := range db.Exposures {
 		if exp.RollId == id {
 			exposures = append(exposures, exp)
@@ -110,7 +75,7 @@ func (db *E4fDb) exposuresForRoll(id int) (exposures []*Exposure) {
 }
 
 type Camera struct {
-	id                int
+	Id                int
 	DefaultFrameCount int
 	MakeId            int
 	SerialNumber      string
@@ -118,39 +83,18 @@ type Camera struct {
 	Title             string
 }
 
-func (o *Camera) Id() int {
-	return o.id
-}
-func (o *Camera) Type() string {
-	return "Camera"
-}
-
 type Make struct {
-	id   int
+	Id   int
 	Name string
 }
 
-func (o *Make) Id() int {
-	return o.id
-}
-func (o *Make) Type() string {
-	return "Make"
-}
-
 type GpsLocation struct {
-	id             int
+	Id             int
 	Long, Lat, Alt float64
 }
 
-func (o *GpsLocation) Id() int {
-	return o.id
-}
-func (o *GpsLocation) Type() string {
-	return "GpsLocation"
-}
-
 type ExposedRoll struct {
-	id           int
+	Id           int
 	FilmType     string
 	CameraId     int
 	Iso          int
@@ -160,15 +104,8 @@ type ExposedRoll struct {
 	FilmId       int
 }
 
-func (o *ExposedRoll) Id() int {
-	return o.id
-}
-func (o *ExposedRoll) Type() string {
-	return "ExposedRoll"
-}
-
 type Exposure struct {
-	id           int
+	Id           int
 	FlashOn      bool
 	Desc         string
 	Number       int
@@ -184,15 +121,8 @@ type Exposure struct {
 	MeteringMode string
 }
 
-func (o *Exposure) Id() int {
-	return o.id
-}
-func (o *Exposure) Type() string {
-	return "Exposure"
-}
-
 type Film struct {
-	id        int
+	Id        int
 	Process   string
 	Title     string
 	ColorType string
@@ -200,15 +130,8 @@ type Film struct {
 	MakeId    int
 }
 
-func (o *Film) Id() int {
-	return o.id
-}
-func (o *Film) Type() string {
-	return "Film"
-}
-
 type Lens struct {
-	id             int
+	Id             int
 	Title          string
 	SerialNumber   string
 	MakeId         int
@@ -216,13 +139,6 @@ type Lens struct {
 	ApertureMax    string
 	FocalLengthMin int
 	FocalLengthMax int
-}
-
-func (o *Lens) Id() int {
-	return o.id
-}
-func (o *Lens) Type() string {
-	return "Lens"
 }
 
 type Artist struct {
@@ -275,7 +191,7 @@ func parse(file string) *E4fDb {
 				e4fDb.Cameras = append(e4fDb.Cameras, camera)
 				decoder.OnTextOf("camera_default_frame_count",
 					toInt(&camera.DefaultFrameCount))
-				decoder.OnTextOf("id", toInt(&camera.id))
+				decoder.OnTextOf("id", toInt(&camera.Id))
 				decoder.OnTextOf("camera_make_id",
 					toInt(&camera.MakeId))
 				decoder.OnTextOf("camera_serial_number",
@@ -289,7 +205,7 @@ func parse(file string) *E4fDb {
 			func(attrs exml.Attrs) {
 				m := &Make{}
 				e4fDb.Makes = append(e4fDb.Makes, m)
-				decoder.OnTextOf("id", toInt(&m.id))
+				decoder.OnTextOf("id", toInt(&m.Id))
 				decoder.OnTextOf("make_name",
 					exml.Assign(&m.Name))
 			})
@@ -299,7 +215,7 @@ func parse(file string) *E4fDb {
 				gps := &GpsLocation{}
 				e4fDb.GpsLocations = append(e4fDb.GpsLocations,
 					gps)
-				decoder.OnTextOf("id", toInt(&gps.id))
+				decoder.OnTextOf("id", toInt(&gps.Id))
 				decoder.OnTextOf("gps_latitude",
 					toFloat(&gps.Lat))
 				decoder.OnTextOf("gps_longitude",
@@ -313,7 +229,7 @@ func parse(file string) *E4fDb {
 				roll := &ExposedRoll{}
 				e4fDb.ExposedRolls = append(e4fDb.ExposedRolls,
 					roll)
-				decoder.OnTextOf("id", toInt(&roll.id))
+				decoder.OnTextOf("id", toInt(&roll.Id))
 				decoder.OnTextOf("exposedroll_film_type",
 					exml.Assign(&roll.FilmType))
 				decoder.OnTextOf("exposedroll_camera_id",
@@ -333,7 +249,7 @@ func parse(file string) *E4fDb {
 			func(attrs exml.Attrs) {
 				exp := &Exposure{}
 				e4fDb.Exposures = append(e4fDb.Exposures, exp)
-				decoder.OnTextOf("id", toInt(&exp.id))
+				decoder.OnTextOf("id", toInt(&exp.Id))
 				decoder.OnTextOf("exposure_flash_on",
 					toBool(&exp.FlashOn))
 				decoder.OnTextOf("exposure_description",
@@ -365,7 +281,7 @@ func parse(file string) *E4fDb {
 			func(attrs exml.Attrs) {
 				film := &Film{}
 				e4fDb.Films = append(e4fDb.Films, film)
-				decoder.OnTextOf("id", toInt(&film.id))
+				decoder.OnTextOf("id", toInt(&film.Id))
 				decoder.OnTextOf("film_title",
 					exml.Assign(&film.Title))
 				decoder.OnTextOf("film_make_process",
@@ -380,7 +296,7 @@ func parse(file string) *E4fDb {
 			func(attrs exml.Attrs) {
 				lens := &Lens{}
 				e4fDb.Lenses = append(e4fDb.Lenses, lens)
-				decoder.OnTextOf("id", toInt(&lens.id))
+				decoder.OnTextOf("id", toInt(&lens.Id))
 				decoder.OnTextOf("lens_title",
 					exml.Assign(&lens.Title))
 				decoder.OnTextOf("lens_serial_number",
