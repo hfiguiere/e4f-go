@@ -6,7 +6,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 
@@ -173,7 +172,7 @@ func toBool(dst *bool) exml.TextCallback {
 	}
 }
 
-func parse(file string) *E4fDb {
+func Parse(file string) *E4fDb {
 
 	reader, _ := os.Open(file)
 	defer reader.Close()
@@ -323,21 +322,4 @@ func parse(file string) *E4fDb {
 	decoder.Run()
 
 	return e4fDb
-}
-
-func main() {
-	e4fDb := parse("samples/export-Roll-20130630_203650.xml")
-
-	e4fDb.buildMaps()
-
-	for _, roll := range e4fDb.ExposedRolls {
-		id := roll.Id()
-		fmt.Println("Roll:")
-		fmt.Println(roll)
-		exps := e4fDb.exposuresForRoll(id)
-		for _, exp := range exps {
-			fmt.Printf("Exposure %d: ", exp.Number)
-			fmt.Println(exp)
-		}
-	}
 }
