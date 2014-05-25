@@ -1,3 +1,8 @@
+// Parse Exif4film xml.
+// And output the result
+//
+// See LICENSE
+
 package main
 
 import (
@@ -53,11 +58,6 @@ func (db *E4fDb) buildMaps() {
 
 	db.GpsMap = make(map[int]*GpsLocation)
 	for _, gps := range db.GpsLocations {
-		o, present := db.GpsMap[gps.id]
-		if present {
-			fmt.Printf("Object %d present already of type %s\n",
-				gps.id, o.Type())
-		}
 		db.GpsMap[gps.id] = gps
 	}
 
@@ -90,14 +90,10 @@ func (db *E4fDb) buildMaps() {
 
 	db.LensMap = make(map[int]*Lens)
 	for _, lens := range db.Lenses {
-		o, present := db.LensMap[lens.id]
-		if present {
-			fmt.Printf("Object %d present already of type %s\n",
-				lens.id, o.Type())
-		}
 		db.LensMap[lens.id] = lens
 	}
 }
+
 func (db *E4fDb) exposuresForRoll(id int) (exposures []*Exposure) {
 	obj := db.ObjectsMap[id]
 	if obj.Type() != "ExposedRoll" {
