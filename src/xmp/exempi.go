@@ -44,11 +44,14 @@ const (
 	SERIAL_OMITALLFORMATTING   = 0x0800
 )
 
-func NewEmpty() C.XmpPtr {
-	return C.xmp_new_empty()
+type Xmp C.XmpPtr
+type String C.XmpStringPtr
+
+func NewEmpty() Xmp {
+	return Xmp(C.xmp_new_empty())
 }
 
-func Free(x C.XmpPtr) {
+func Free(x Xmp) {
 	C.xmp_free(x)
 }
 
@@ -56,7 +59,7 @@ func GetError() int {
 	return int(C.xmp_get_error())
 }
 
-func Serialize(x C.XmpPtr, buffer C.XmpStringPtr, options C.uint32_t,
+func Serialize(x Xmp, buffer String, options C.uint32_t,
 	padding C.uint32_t) bool {
 
 	ret := C.xmp_serialize(x, buffer, options, padding)
@@ -64,7 +67,7 @@ func Serialize(x C.XmpPtr, buffer C.XmpStringPtr, options C.uint32_t,
 	return bool(ret)
 }
 
-func SetProperty(x C.XmpPtr, schema *C.char, name string, value string,
+func SetProperty(x Xmp, schema *C.char, name string, value string,
 	optionBits C.uint32_t) bool {
 
 	nameC := C.CString(name)
@@ -76,7 +79,7 @@ func SetProperty(x C.XmpPtr, schema *C.char, name string, value string,
 	return bool(ret)
 }
 
-func SetArrayItem(x C.XmpPtr, schema *C.char, name string, index int32,
+func SetArrayItem(x Xmp, schema *C.char, name string, index int32,
 	value string, optionBits C.uint32_t) bool {
 
 	nameC := C.CString(name)
@@ -89,7 +92,7 @@ func SetArrayItem(x C.XmpPtr, schema *C.char, name string, index int32,
 	return bool(ret)
 }
 
-func AppendArrayItem(x C.XmpPtr, schema *C.char, name string,
+func AppendArrayItem(x Xmp, schema *C.char, name string,
 	arrayOptions C.uint32_t, value string, optionBits C.uint32_t) bool {
 
 	nameC := C.CString(name)
@@ -102,16 +105,16 @@ func AppendArrayItem(x C.XmpPtr, schema *C.char, name string,
 	return bool(ret)
 }
 
-func StringNew() C.XmpStringPtr {
-	return C.xmp_string_new()
+func StringNew() String {
+	return String(C.xmp_string_new())
 }
 
-func StringFree(s C.XmpStringPtr) {
+func StringFree(s String) {
 	C.xmp_string_free(s)
 }
 
 // Convert an XmpString to Go string
-func StringGo(str C.XmpStringPtr) string {
+func StringGo(str String) string {
 	return C.GoString(C.xmp_string_cstr(str))
 }
 
