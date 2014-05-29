@@ -1,9 +1,9 @@
-package main
+package e4f
 
 import "testing"
 
 func TestE4f(t *testing.T) {
-	e4fDb := Parse("samples/export-Roll-20130630_203650.xml")
+	e4fDb := Parse("../../samples/export-Roll-20130630_203650.xml")
 
 	e4fDb.buildMaps()
 
