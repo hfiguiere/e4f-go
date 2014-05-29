@@ -3,11 +3,12 @@
 //
 // See LICENSE
 
-package main
+package e4f
 
 import (
 	"os"
 	"strconv"
+	"fmt"
 
 	"gopkg.in/lucsky/go-exml.v3"
 )
@@ -64,7 +65,7 @@ func (db *E4fDb) buildMaps() {
 	}
 }
 
-func (db *E4fDb) exposuresForRoll(id int) (exposures []*Exposure) {
+func (db *E4fDb) ExposuresForRoll(id int) (exposures []*Exposure) {
 	for _, exp := range db.Exposures {
 		if exp.RollId == id {
 			exposures = append(exposures, exp)
@@ -321,5 +322,14 @@ func Parse(file string) *E4fDb {
 	})
 	decoder.Run()
 
+	e4fDb.buildMaps()
+
 	return e4fDb
 }
+
+
+func (db *E4fDb) Print(roll *ExposedRoll) {
+	fmt.Printf("%s %d\n", roll.FilmType, roll.Iso)
+
+}
+

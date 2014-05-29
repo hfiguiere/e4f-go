@@ -1,9 +1,13 @@
 
+GOPATH=$(shell pwd)
 
-all: e4f
+all: e4f-tool
 
 
-.PHONY: e4f
-e4f: e4f.go
+.PHONY: e4f-tool
+e4f-tool: e4f-tool.go
 	go build $<
+
+check:
+	go test
 

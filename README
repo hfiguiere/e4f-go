@@ -8,6 +8,13 @@ app.
 
 This has been written without documentation of the format.
 
+Requirements
+
+Go
+  - Modules will be automatically installed
+Exempi
+
+
 TODO:
 
 Make this a package.
