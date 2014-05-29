@@ -4,11 +4,33 @@ import (
 	"os"
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 
 	"e4f"
 	"xmp"
 )
+
+// Convert a float to a GpsCoord from XMP. dir is either 'N' or 'E'.
+// Sign will change it.
+func floatToGpsCoord(f float64, dir byte) string {
+
+	negative := math.Signbit(f)
+	if negative {
+		switch dir {
+		case 'N':
+			dir = 'S'
+		case 'E':
+			dir = 'W'
+		}
+	}
+
+	f = math.Abs(f)
+	degs := math.Floor(f)
+
+	minutes := (f - degs) * 60
+	return fmt.Sprintf("%d,%f%c", int(degs), minutes, dir)
+}
 
 func exposureToXmp(db *e4f.E4fDb, roll *e4f.ExposedRoll, exp *e4f.Exposure, index int) {
 
@@ -85,11 +107,16 @@ func exposureToXmp(db *e4f.E4fDb, roll *e4f.ExposedRoll, exp *e4f.Exposure, inde
 	// Gps
 	gps, found := db.GpsMap[exp.GpsLocId]
 	if gps != nil && found {
-//		xmp.SetProperty(x, xmp.NS_EXIF, "GPSAltitude",
-//			gps.Alt, 0)
-//		GPSLatitude
-//		GPSLongitude
-//		xmp.SetProperty(x, xmp.NS_EXIF,
+		// create a fraction. Assume 1/10th of meter precision
+		alt := gps.Alt * 10
+		xmp.SetProperty(x, xmp.NS_EXIF, "GPSAltitude",
+			fmt.Sprintf("%d/10", int(alt)), 0)
+
+		coord := floatToGpsCoord(gps.Lat, 'N');
+		xmp.SetProperty(x, xmp.NS_EXIF, "GPSLatitude", coord, 0)
+
+		coord = floatToGpsCoord(gps.Long, 'E');
+		xmp.SetProperty(x, xmp.NS_EXIF, "GPSLongitude", coord, 0)
 	}
 
 	buffer := xmp.StringNew()
