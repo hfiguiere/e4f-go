@@ -23,6 +23,9 @@ var (
 	NS_DIMENSIONS_TYPE = (*C.char)(unsafe.Pointer(&C.NS_DIMENSIONS_TYPE))
 	NS_CC = (*C.char)(unsafe.Pointer(&C.NS_CC))
 	NS_PDF = (*C.char)(unsafe.Pointer(&C.NS_PDF))
+
+	// see http://analogexif.sourceforge.net/help/analogexif-xmp.php
+	NS_ANALOG = C.CString("http://analogexif.sourceforge.net/ns")
 )
 
 
@@ -46,6 +49,12 @@ const (
 
 type Xmp C.XmpPtr
 type String C.XmpStringPtr
+
+func RegisterNamespace(uri *C.char, prefix string, s String) bool {
+	prefixC := C.CString(prefix)
+	defer C.free(unsafe.Pointer(prefixC))
+	return bool(C.xmp_register_namespace(uri, prefixC, s))
+}
 
 func NewEmpty() Xmp {
 	return Xmp(C.xmp_new_empty())
@@ -118,8 +127,8 @@ func StringGo(str String) string {
 	return C.GoString(C.xmp_string_cstr(str))
 }
 
-
-
 func init () {
 	C.xmp_init()
+
+	RegisterNamespace(NS_ANALOG, "analog", String(nil))
 }
