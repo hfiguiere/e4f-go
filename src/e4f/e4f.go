@@ -102,6 +102,7 @@ type ExposedRoll struct {
 	TimeUnloaded string
 	TimeLoaded   string
 	FilmId       int
+	Desc         string
 }
 
 type Exposure struct {
@@ -238,6 +239,8 @@ func Parse(file string) *E4fDb {
 					toInt(&roll.FilmId))
 				decoder.OnTextOf("exposedroll_iso",
 					toInt(&roll.Iso))
+				decoder.OnTextOf("exposedroll_description",
+					exml.Assign(&roll.Desc))
 				decoder.OnTextOf("exposedroll_frame_count",
 					toInt(&roll.FrameCount))
 				decoder.OnTextOf("exposedroll_time_unloaded",
