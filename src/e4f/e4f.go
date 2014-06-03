@@ -332,7 +332,25 @@ func Parse(file string) *E4fDb {
 
 
 func (db *E4fDb) Print(roll *ExposedRoll) {
-	fmt.Printf("%s %d\n", roll.FilmType, roll.Iso)
+	fmt.Printf("%s\n", roll.Desc)
+	var filmLabel string
+	film, found := db.FilmMap[roll.FilmId]
+	if film != nil && found {
+		mk := db.MakeMap[film.MakeId]
+		var filmMake string
+		if mk != nil && mk.Name != "" {
+			filmMake = mk.Name
+		}
+		if film.Title != "" {
+			if filmMake != "" {
+				filmLabel = fmt.Sprintf("%s %s", mk.Name,
+					film.Title)
+			} else {
+				filmLabel = film.Title
+			}
+		}
+	}
 
+	fmt.Printf("Type %s, %s, %d ISO\n\n", roll.FilmType, filmLabel, roll.Iso)
 }
 

@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"flag"
 	"log"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 
@@ -35,10 +35,11 @@ func floatToGpsCoord(f float64, dir byte) string {
 	return fmt.Sprintf("%d,%f%c", int(degs), minutes, dir)
 }
 
-func exposureToXmp(db *e4f.E4fDb, roll *e4f.ExposedRoll, exp *e4f.Exposure, index int) {
+// Generate XMP for a single exposure
+func exposureToXmp(db *e4f.E4fDb, roll *e4f.ExposedRoll, exp *e4f.Exposure,
+	index int) xmp.Xmp {
 
 	x := xmp.NewEmpty()
-	defer xmp.Free(x)
 
 	xmp.SetProperty(x, xmp.NS_EXIF_AUX, "ImageNumber",
 		fmt.Sprintf("%d", index+1), 0)
@@ -230,31 +231,55 @@ func exposureToXmp(db *e4f.E4fDb, roll *e4f.ExposedRoll, exp *e4f.Exposure, inde
 		xmp.SetProperty(x, xmp.NS_EXIF, "GPSLongitude", coord, 0)
 	}
 
-	buffer := xmp.StringNew()
-	defer xmp.StringFree(buffer)
-
-	xmp.Serialize(x, buffer, xmp.SERIAL_OMITPACKETWRAPPER, 0)
-
-	fmt.Println(xmp.StringGo(buffer))
+	return x
 }
 
 func main() {
 
-	if len(os.Args) < 2 {
-		log.Fatal("Not enough arg")
+	formatPtr := flag.String("format", "xmp",
+		"Output format. Only value: xmp")
+	dumpPtr := flag.Bool("dump", false, "Dump the content")
+	listPtr := flag.Bool("list", false, "List rolls")
+	rollNumPtr := flag.Int("roll", 0, "Roll number. 0 = all")
+
+	flag.Parse()
+
+	args := flag.Args()
+	if len(args) < 1 {
+		log.Fatal("Not enough args.")
 	}
 
-	path := os.Args[1]
+	path := args[0]
 	e4fDb := e4f.Parse(path)
 
-	for _, roll := range e4fDb.ExposedRolls {
+	var rolls []*e4f.ExposedRoll
+	if *rollNumPtr > 0 {
+		rolls = e4fDb.ExposedRolls[*rollNumPtr - 1:*rollNumPtr]
+	} else {
+		rolls = e4fDb.ExposedRolls
+	}
+	for idx, roll := range rolls {
 		id := roll.Id
-		fmt.Println("Roll:")
-		e4fDb.Print(roll)
-		exps := e4fDb.ExposuresForRoll(id)
-		fmt.Println(exps)
-		for i, exp := range exps {
-			exposureToXmp(e4fDb, roll, exp, i)
+		if *listPtr {
+			fmt.Printf("Roll %d:\n", idx+1)
+			e4fDb.Print(roll)
+		}
+		if *dumpPtr {
+			exps := e4fDb.ExposuresForRoll(id)
+			fmt.Println(exps)
+			for i, exp := range exps {
+				if *formatPtr == "xmp" {
+					x := exposureToXmp(e4fDb, roll, exp, i)
+					defer xmp.Free(x)
+
+					buffer := xmp.StringNew()
+					defer xmp.StringFree(buffer)
+
+					xmp.Serialize(x, buffer,
+						xmp.SERIAL_OMITPACKETWRAPPER, 0)
+					fmt.Println(xmp.StringGo(buffer))
+				}
+			}
 		}
 	}
 }
