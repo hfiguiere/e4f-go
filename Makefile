@@ -6,8 +6,8 @@ all: e4f-tool
 
 .PHONY: e4f-tool
 e4f-tool: e4f-tool.go
-	go build $<
+	GOPATH=$(GOPATH) go build $<
 
 check:
-	go test
+	GOPATH=$(GOPATH) go test
 
