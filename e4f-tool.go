@@ -246,7 +246,7 @@ func main() {
 
 	args := flag.Args()
 	if len(args) < 1 {
-		flag.PrintDefaults();
+		flag.PrintDefaults()
 		log.Fatal("Not enough args.")
 	}
 
