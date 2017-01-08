@@ -5,3 +5,13 @@ go:
   - 1.6
   - 1.7.x
   - master
+
+addons:
+  apt:
+    packages:
+      - libexempi-dev
+
+go_import_path: github.com/hfiguiere/e4f-go
+install:
+  - export GOPATH="${TRAVIS_BUILD_DIR}"
+  - go get -v gopkg.in/lucsky/go-exml.v3
