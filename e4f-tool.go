@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 	"log"
 	"math"
 	"strconv"
@@ -47,7 +47,7 @@ func exposureToText(db *e4f.E4fDb, roll *e4f.ExposedRoll, exp *e4f.Exposure,
 
 	shootInfo := fmt.Sprintf("%s %s %dmm", exp.ShutterSpeed, aperture, exp.FocalLength)
 	return fmt.Sprintf("Frame %d, %s %s\n\t%s",
-		index + 1, exp.TimeTaken, shootInfo,
+		index+1, exp.TimeTaken, shootInfo,
 		exp.Desc)
 }
 
@@ -271,7 +271,7 @@ func main() {
 
 	var rolls []*e4f.ExposedRoll
 	if *rollNumPtr > 0 {
-		rolls = e4fDb.ExposedRolls[*rollNumPtr - 1:*rollNumPtr]
+		rolls = e4fDb.ExposedRolls[*rollNumPtr-1 : *rollNumPtr]
 	} else {
 		rolls = e4fDb.ExposedRolls
 	}

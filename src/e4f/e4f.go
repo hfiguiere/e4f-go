@@ -6,9 +6,9 @@
 package e4f
 
 import (
+	"fmt"
 	"os"
 	"strconv"
-	"fmt"
 
 	"gopkg.in/lucsky/go-exml.v3"
 )
@@ -24,12 +24,12 @@ type E4fDb struct {
 	Lenses       []*Lens
 	Artists      []*Artist
 
-	RollMap    map[int]*ExposedRoll
-	MakeMap    map[int]*Make
-	CameraMap  map[int]*Camera
-	GpsMap     map[int]*GpsLocation
-	LensMap    map[int]*Lens
-	FilmMap    map[int]*Film
+	RollMap   map[int]*ExposedRoll
+	MakeMap   map[int]*Make
+	CameraMap map[int]*Camera
+	GpsMap    map[int]*GpsLocation
+	LensMap   map[int]*Lens
+	FilmMap   map[int]*Film
 }
 
 // Build the id -> data maps for the various elements
@@ -330,7 +330,6 @@ func Parse(file string) *E4fDb {
 	return e4fDb
 }
 
-
 func (db *E4fDb) Print(roll *ExposedRoll) {
 	fmt.Printf("%s\n", roll.Desc)
 	var filmLabel string
@@ -361,4 +360,3 @@ func (db *E4fDb) Print(roll *ExposedRoll) {
 
 	fmt.Printf("\n")
 }
-
