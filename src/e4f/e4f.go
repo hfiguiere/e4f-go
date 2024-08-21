@@ -351,6 +351,14 @@ func (db *E4fDb) Print(roll *ExposedRoll) {
 		}
 	}
 
-	fmt.Printf("Type %s, %s, %d ISO\n\n", roll.FilmType, filmLabel, roll.Iso)
+	fmt.Printf("Type %s, %s, %d ISO\n", roll.FilmType, filmLabel, roll.Iso)
+
+	camera, found := db.CameraMap[roll.CameraId]
+	if camera != nil && found {
+		mk := db.MakeMap[camera.MakeId]
+		fmt.Printf("Camera: %s %s\n", mk.Name, camera.Title)
+	}
+
+	fmt.Printf("\n")
 }
 

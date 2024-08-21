@@ -35,6 +35,22 @@ func floatToGpsCoord(f float64, dir byte) string {
 	return fmt.Sprintf("%d,%f%c", int(degs), minutes, dir)
 }
 
+// Print in text form the exposure.
+func exposureToText(db *e4f.E4fDb, roll *e4f.ExposedRoll, exp *e4f.Exposure,
+	index int) string {
+
+	aperture := ""
+	f, err := strconv.ParseFloat(exp.Aperture, 64)
+	if err == nil {
+		aperture = fmt.Sprintf("f/%.1f", f)
+	}
+
+	shootInfo := fmt.Sprintf("%s %s %dmm", exp.ShutterSpeed, aperture, exp.FocalLength)
+	return fmt.Sprintf("Frame %d, %s %s\n\t%s",
+		index + 1, exp.TimeTaken, shootInfo,
+		exp.Desc)
+}
+
 // Generate XMP for a single exposure
 func exposureToXmp(db *e4f.E4fDb, roll *e4f.ExposedRoll, exp *e4f.Exposure,
 	index int) xmp.Xmp {
@@ -237,7 +253,7 @@ func exposureToXmp(db *e4f.E4fDb, roll *e4f.ExposedRoll, exp *e4f.Exposure,
 func main() {
 
 	formatPtr := flag.String("format", "xmp",
-		"Output format. Only value: xmp")
+		"Output format. Value: xmp or text")
 	dumpPtr := flag.Bool("dump", false, "Dump the content")
 	listPtr := flag.Bool("list", false, "List rolls")
 	rollNumPtr := flag.Int("roll", 0, "Roll number. 0 = all")
@@ -267,7 +283,6 @@ func main() {
 		}
 		if *dumpPtr {
 			exps := e4fDb.ExposuresForRoll(id)
-			fmt.Println(exps)
 			for i, exp := range exps {
 				if *formatPtr == "xmp" {
 					x := exposureToXmp(e4fDb, roll, exp, i)
@@ -279,6 +294,11 @@ func main() {
 					xmp.Serialize(x, buffer,
 						xmp.SERIAL_OMITPACKETWRAPPER, 0)
 					fmt.Println(xmp.StringGo(buffer))
+				} else if *formatPtr == "text" {
+
+					t := exposureToText(e4fDb, roll, exp, i)
+
+					fmt.Println(t)
 				}
 			}
 		}
