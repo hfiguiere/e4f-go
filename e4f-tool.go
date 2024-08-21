@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"e4f"
-	"xmp"
+	"gitlab.com/photo/e4f-go/src/e4f"
+	"gitlab.com/photo/e4f-go/src/xmp"
 
 	"C"
 )
