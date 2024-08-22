@@ -47,6 +47,11 @@ func exposureToText(db *e4f.E4fDb, roll *e4f.ExposedRoll, exp *e4f.Exposure,
 	}
 
 	shootInfo := fmt.Sprintf("%s %s %dmm", exp.ShutterSpeed, aperture, exp.FocalLength)
+	gps, found := db.GpsMap[exp.GpsLocId]
+	if gps != nil && found {
+		shootInfo += fmt.Sprintf("\n\tLong %f Lat %f", gps.Long, gps.Lat)
+	}
+
 	return fmt.Sprintf("Frame %d, %s %s\n\t%s",
 		index+1, exp.TimeTaken, shootInfo,
 		exp.Desc)
