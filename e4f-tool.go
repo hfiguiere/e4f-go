@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -250,6 +251,14 @@ func exposureToXmp(db *e4f.E4fDb, roll *e4f.ExposedRoll, exp *e4f.Exposure,
 	return x
 }
 
+// ByLabel implements sort.Interface for []Person based on
+// the Age field.
+type ByLabel []*e4f.ExposedRoll
+
+func (a ByLabel) Len() int           { return len(a) }
+func (a ByLabel) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByLabel) Less(i, j int) bool { return a[i].Desc < a[j].Desc }
+
 func main() {
 
 	formatPtr := flag.String("format", "xmp",
@@ -275,6 +284,7 @@ func main() {
 	} else {
 		rolls = e4fDb.ExposedRolls
 	}
+	sort.Sort(ByLabel(rolls))
 	for idx, roll := range rolls {
 		id := roll.Id
 		if *listPtr {
